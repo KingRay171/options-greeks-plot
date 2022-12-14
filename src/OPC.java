@@ -1,15 +1,11 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.*;
 
 class KeyboardZoomAction extends AbstractAction {
@@ -223,12 +219,7 @@ public class OPC extends JComponent {
             }
         });
 
-        f.addMouseWheelListener(new MouseWheelListener() {
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                frameMouseWheelMoved(e);
-            }
-
-        });
+        f.addMouseWheelListener(OPC::frameMouseWheelMoved);
 
 
         //graph renderer setup
@@ -287,7 +278,7 @@ public class OPC extends JComponent {
         restoreDefaults = new JButton("Restore Default Slider Settings");
         restoreDefaults.setBounds(830, 220, 250, 40);
 
-        //restore defualt zoom button setup
+        //restore default zoom button setup
         restoreZoom = new JButton("Restore Default Zoom Settings");
         restoreZoom.setBounds(830, 270, 250, 40);
 
@@ -299,16 +290,10 @@ public class OPC extends JComponent {
          * assure only one can be selected at a time & adds a simple
          * event listener to each one
          */
-        for(int i = 0; i < greeksButtons.length; i++)
-        {
-            bg.add(greeksButtons[i]);
-            greeksPanel.add(greeksButtons[i]);
-            greeksButtons[i].addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e)
-                {
-                    updateGraph(true);
-                }
-            });
+        for (JRadioButton greeksButton : greeksButtons) {
+            bg.add(greeksButton);
+            greeksPanel.add(greeksButton);
+            greeksButton.addActionListener(e -> updateGraph(true));
         }
 
         //setup for option variable sliders
@@ -332,46 +317,36 @@ public class OPC extends JComponent {
         for(int i = 0; i < 2; i++)
         {
             final int i1 = i;
-            sliders[i].addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    optionVars[i1] = sliders[i1].getValue();
-                    sliderValues[i1].setText(Integer.toString(sliders[i1].getValue()));
-                    updateOptionVars();
-                    updateGraph(true);
-                }
+            sliders[i].addChangeListener(e -> {
+                optionVars[i1] = sliders[i1].getValue();
+                sliderValues[i1].setText(Integer.toString(sliders[i1].getValue()));
+                updateOptionVars();
+                updateGraph(true);
             });
         }
-        sliders[2].addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                optionVars[2] = ((double)sliders[2].getValue() / 100.0);
-                sliderValues[2].setText(Integer.toString(sliders[2].getValue()) + "%");
-                updateOptionVars();
-                updateGraph(true);
-            }
+        sliders[2].addChangeListener(e -> {
+            optionVars[2] = ((double)sliders[2].getValue() / 100.0);
+            sliderValues[2].setText(sliders[2].getValue() + "%");
+            updateOptionVars();
+            updateGraph(true);
         });
 
-        sliders[3].addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                optionVars[3] = (double)(sliders[3].getValue() / 365.0);
-                sliderValues[3].setText(Integer.toString(sliders[3].getValue()));
-                updateOptionVars();
-                updateGraph(true);
-            }
+        sliders[3].addChangeListener(e -> {
+            optionVars[3] = sliders[3].getValue() / 365.0;
+            sliderValues[3].setText(Integer.toString(sliders[3].getValue()));
+            updateOptionVars();
+            updateGraph(true);
         });
 
         for(int i = 4; i < sliders.length; i++)
         {
             //i1 constant declared to bypass scope issues - DO NOT TOUCH
             final int i1 = i;
-            sliders[i].addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    optionVars[i1] = (double)((sliders[i1].getValue() / 100.0) / 100.0);
-                    sliderValues[i1].setText(Double.toString(optionVars[i1] * 100.0) + "%");
-                    updateOptionVars();
-                    updateGraph(true);
-                }
+            sliders[i].addChangeListener(e -> {
+                optionVars[i1] = (sliders[i1].getValue() / 100.0) / 100.0;
+                sliderValues[i1].setText(optionVars[i1] * 100.0 + "%");
+                updateOptionVars();
+                updateGraph(true);
             });
         }
 
@@ -383,17 +358,11 @@ public class OPC extends JComponent {
         f.add(restoreZoom);
         f.add(opc);
 
-        restoreDefaults.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                restoreDefaultsActionPerformed(e);
-            };
-        });
+        restoreDefaults.addActionListener(OPC::restoreDefaultsActionPerformed);
 
-        restoreZoom.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                scale = 1;
-                updateGraph(false);
-            }
+        restoreZoom.addActionListener(e -> {
+            scale = 1;
+            updateGraph(false);
         });
 
         sliderValues[0].addMouseListener(new MouseListener() {
@@ -663,7 +632,7 @@ public class OPC extends JComponent {
         opc.repaint();
     }
 
-    public static void sliderValues1ActionPerformed(MouseEvent e){
+    public static void sliderValues1ActionPerformed(MouseEvent ignoredE){
         String newSP = JOptionPane.showInputDialog(f, "Enter the new stock price");
         sliderValues[0].setText(newSP);
         sliders[0].setValue(Integer.parseInt(newSP));
@@ -673,7 +642,7 @@ public class OPC extends JComponent {
         updateGraph(false);
     }
 
-    public static void sliderValues2ActionPerformed(MouseEvent e){
+    public static void sliderValues2ActionPerformed(MouseEvent ignoredE){
         String newK = JOptionPane.showInputDialog(f, "Enter the new strike price");
         sliderValues[1].setText(newK);
         sliders[1].setValue(Integer.parseInt(newK));
